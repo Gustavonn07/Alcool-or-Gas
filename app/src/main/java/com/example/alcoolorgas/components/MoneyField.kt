@@ -15,29 +15,19 @@ fun MoneyField(
     label: String,
     placeholder: String
 ) {
-    fun formatCurrency(value: Double): String {
-        val receivedValueSeparated = "%.2f".format(value).split(".")
-        val real = receivedValueSeparated[0]
-        val cent = receivedValueSeparated[1]
-        return "R$ ${real},${cent}"
-    }
-
     TextField(
         onValueChange = { newValue ->
-            // Filtra qualquer coisa que não seja um dígito, uma virgula ou um ponto com o Regex
-            val cleanedValue = newValue.replace(Regex("[^0-9,.]"), "")
-            val numericValue = cleanedValue.replace(',', '.').toDoubleOrNull()
+            val filtered = newValue.filter { it.isDigit() || it == '.' || it == ',' }
 
-            val formattedValue =
-                if (numericValue != null && cleanedValue.contains(',')) {
-                    formatCurrency(numericValue)
-                } else {
-                    cleanedValue
-                }
+            val dotCount = filtered.count { it == '.' }
+            val commaCount = filtered.count { it == ',' }
+            if (dotCount + commaCount > 1) return@TextField
 
-            setValue(formattedValue)
+            val normalized = filtered.replace(',', '.')
+
+            setValue(normalized)
         },
-        value = value,
+        value = value.replace(",", "."),
         label = { Text(label) },
         placeholder = { Text(placeholder) },
         singleLine = true,
