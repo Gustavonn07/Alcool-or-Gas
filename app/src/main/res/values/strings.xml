@@ -43,4 +43,6 @@
     <string name="clear_all_question">Limpar tudo?</string>
     <string name="clear_all_warning">Isso removerá todos os postos salvos.</string>
     <string name="confirm">Confirmar</string>
+
+    <string name="view_map">Ver mapa</string>
 </resources>

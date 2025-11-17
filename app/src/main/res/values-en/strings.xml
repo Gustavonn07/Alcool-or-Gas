@@ -44,4 +44,6 @@
     <string name="clear_all_question">Clear all?</string>
     <string name="clear_all_warning">This will remove all saved stations.</string>
     <string name="confirm">Confirm</string>
+
+    <string name="view_map">View map</string>
 </resources>

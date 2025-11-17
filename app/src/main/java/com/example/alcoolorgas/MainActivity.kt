@@ -1,5 +1,10 @@
 package com.example.alcoolorgas
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,6 +31,23 @@ import com.example.alcoolorgas.ui.theme.Purple40
 import androidx.compose.ui.res.stringResource
 
 class MainActivity : ComponentActivity() {
+    private val LOCATION_PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION
+
+    private fun requestLocationPermission() {
+        if (checkSelfPermission(LOCATION_PERMISSION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(LOCATION_PERMISSION), 100)
+        }
+    }
+
+    fun getLastKnownLocation(): Location? {
+        val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        if (checkSelfPermission(LOCATION_PERMISSION) == PackageManager.PERMISSION_GRANTED) {
+            return lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                ?: lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+        }
+        return null
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -33,10 +55,15 @@ class MainActivity : ComponentActivity() {
         val prefs = getSharedPreferences("alcool_gas_prefs", MODE_PRIVATE)
         val savedPercentSwitch = prefs.getBoolean("percentSwitch", true)
         val savedDarkTheme = prefs.getBoolean("darkTheme", false)
+        requestLocationPermission()
 
         setContent {
             var isDarkTheme by remember { mutableStateOf(savedDarkTheme) }
             var percentChecked by remember { mutableStateOf(savedPercentSwitch) }
+
+            var userLocation by remember {
+                mutableStateOf(getLastKnownLocation())
+            }
 
             AlcoolOrGasTheme(darkTheme = isDarkTheme) {
                 AlcoolOrGas(
@@ -49,7 +76,8 @@ class MainActivity : ComponentActivity() {
                     onSwitchChange = {
                         percentChecked = it
                         prefs.edit().putBoolean("percentSwitch", it).apply()
-                    }
+                    },
+                    userLocation = userLocation,
                 )
             }
         }
@@ -61,7 +89,8 @@ fun AlcoolOrGas(
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit,
     switchChecked: Boolean,
-    onSwitchChange: (Boolean) -> Unit
+    onSwitchChange: (Boolean) -> Unit,
+    userLocation: Location?
 ) {
     val context = LocalContext.current
     val repo = remember { FuelHelpers(context) }
@@ -179,6 +208,7 @@ fun AlcoolOrGas(
 
                 Button(
                     onClick = {
+
                         val alcool = formatNumber(alcoolPrice) ?: 0.0
                         val gas = formatNumber(gasPrice) ?: 0.0
 
@@ -187,30 +217,33 @@ fun AlcoolOrGas(
                             return@Button
                         }
 
-                        val total = repo.getStations().size
-                        if (editingId == null && total >= maxStations) {
-                            result = context.getString(R.string.error_limit_reached)
-                            return@Button
-                        }
+                        val lat = userLocation?.latitude
+                        val lng = userLocation?.longitude
 
                         if (editingId == null) {
-                            val newStation = FuelStation(
-                                id = java.util.UUID.randomUUID().toString(),
-                                name = station,
-                                alcool = alcool,
-                                gasolina = gas,
-                                percent = percentValue
+                            repo.addStation(
+                                FuelStation(
+                                    id = java.util.UUID.randomUUID().toString(),
+                                    name = station,
+                                    alcool = alcool,
+                                    gasolina = gas,
+                                    percent = percentValue,
+                                    latitude = lat,
+                                    longitude = lng
+                                )
                             )
-                            repo.addStation(newStation)
                         } else {
-                            val updated = FuelStation(
-                                id = editingId!!,
-                                name = station,
-                                alcool = alcool,
-                                gasolina = gas,
-                                percent = percentValue
+                            repo.updateStation(
+                                FuelStation(
+                                    id = editingId!!,
+                                    name = station,
+                                    alcool = alcool,
+                                    gasolina = gas,
+                                    percent = percentValue,
+                                    latitude = lat,
+                                    longitude = lng
+                                )
                             )
-                            repo.updateStation(updated)
                             editingId = null
                         }
 

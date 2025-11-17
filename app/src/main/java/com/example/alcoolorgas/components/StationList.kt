@@ -1,5 +1,7 @@
 package com.example.alcoolorgas.components
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -33,6 +36,8 @@ fun StationListPage(
     val stations = remember { mutableStateOf(repo.getStations()) }
     var selectedStation by remember { mutableStateOf<FuelStation?>(null) }
     var showClearAll by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -117,6 +122,7 @@ fun StationListPage(
                 onDismissRequest = { selectedStation = null },
                 title = { Text(stringResource(R.string.choose_action)) },
                 text = { Text(stringResource(R.string.select_action_desc)) },
+
                 confirmButton = {
                     TextButton(onClick = {
                         onSelect(selectedStation!!)
@@ -125,8 +131,31 @@ fun StationListPage(
                         Text(stringResource(R.string.edit))
                     }
                 },
+
                 dismissButton = {
                     Column {
+
+                        TextButton(onClick = {
+                            val st = selectedStation!!
+
+                            if (st.latitude != null && st.longitude != null) {
+                                val uri = Uri.parse("geo:${st.latitude},${st.longitude}?q=${st.latitude},${st.longitude}(${st.name})")
+                                val intent = Intent(Intent.ACTION_VIEW, uri)
+                                intent.setPackage("com.google.android.apps.maps")
+                                context.startActivity(intent)
+                            } else {
+                                val fallback = Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse("geo:0,0?q=${st.name}")
+                                )
+                                context.startActivity(fallback)
+                            }
+
+                            selectedStation = null
+                        }) {
+                            Text(stringResource(R.string.view_map))
+                        }
+
                         TextButton(onClick = {
                             repo.deleteStation(selectedStation!!.id)
                             stations.value = repo.getStations()
@@ -136,6 +165,7 @@ fun StationListPage(
                             Text(stringResource(R.string.delete), color = Color.Red)
                         }
 
+                        // Cancelar
                         TextButton(onClick = { selectedStation = null }) {
                             Text(stringResource(R.string.cancel))
                         }
