@@ -205,6 +205,30 @@ fun AlcoolOrGas(
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
+                Button(
+                        onClick = {
+                            val alcool = formatNumber(alcoolPrice) ?: 0.0
+                            val gas = formatNumber(gasPrice) ?: 0.0
+
+                            if (alcool == 0.0 || gas == 0.0) {
+                                result = context.getString(R.string.error_fill_all)
+                                return@Button
+                            }
+
+                            val ratio = alcool / gas
+
+                            result = if (ratio <= 0.7)
+                                context.getString(R.string.best_use_alcohol, ratio)
+                            else
+                                context.getString(R.string.best_use_gasoline, ratio)
+
+                        },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                Text("Calcular")
+            }
+
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Button(
                     onClick = {

@@ -46,4 +46,7 @@
     <string name="confirm">Confirm</string>
 
     <string name="view_map">View map</string>
+
+    <string name="best_use_alcohol">Better use Ethanol (index: %1$.2f)</string>
+    <string name="best_use_gasoline">Better use Gasoline (index: %1$.2f)</string>
 </resources>
