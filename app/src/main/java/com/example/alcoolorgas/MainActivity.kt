@@ -23,6 +23,7 @@ import com.example.alcoolorgas.data.FuelHelpers
 import com.example.alcoolorgas.models.FuelStation
 import com.example.alcoolorgas.ui.theme.AlcoolOrGasTheme
 import com.example.alcoolorgas.ui.theme.Purple40
+import androidx.compose.ui.res.stringResource
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,7 +98,7 @@ fun AlcoolOrGas(
                     .fillMaxWidth()
                     .padding(42.dp)
             ) {
-                Text("Modo Escuro", color = textColor)
+                Text(stringResource(id = R.string.dark_mode), color = textColor)
                 Spacer(modifier = Modifier.width(8.dp))
                 Switch(
                     checked = isDarkTheme,
@@ -112,9 +113,11 @@ fun AlcoolOrGas(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
                 Text(
-                    text = if (editingId == null) "Álcool ou Gasolina?" else "Editar Posto",
+                    text = if (editingId == null)
+                        stringResource(R.string.title_new_station)
+                    else
+                        stringResource(R.string.title_edit_station),
                     color = textColor,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
@@ -125,8 +128,8 @@ fun AlcoolOrGas(
                 MoneyField(
                     value = alcoolPrice,
                     setValue = { alcoolPrice = it },
-                    label = "Preço do Álcool (R$)",
-                    placeholder = "Ex: 5.49"
+                    label = stringResource(R.string.label_alcool),
+                    placeholder = stringResource(R.string.placeholder_price)
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -134,8 +137,8 @@ fun AlcoolOrGas(
                 MoneyField(
                     value = gasPrice,
                     setValue = { gasPrice = it },
-                    label = "Preço da Gasolina (R$)",
-                    placeholder = "Ex: 5.49"
+                    label = stringResource(R.string.label_gas),
+                    placeholder = stringResource(R.string.placeholder_price)
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -143,8 +146,8 @@ fun AlcoolOrGas(
                 TextField(
                     onValueChange = { station = it },
                     value = station,
-                    label = { Text("Nome do Posto", color = textColor) },
-                    placeholder = { Text("Ex: Posto do Pici", color = textColor.copy(alpha = 0.5f)) },
+                    label = { Text(stringResource(R.string.label_station_name), color = textColor) },
+                    placeholder = { Text(stringResource(R.string.placeholder_station), color = textColor.copy(alpha = 0.5f)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                     modifier = Modifier.fillMaxWidth()
@@ -157,18 +160,18 @@ fun AlcoolOrGas(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("70%", color = textColor)
+                    Text(stringResource(R.string.opt_70), color = textColor)
                     Switch(
                         checked = switchChecked,
                         onCheckedChange = { onSwitchChange(it) }
                     )
-                    Text("75%", color = textColor)
+                    Text(stringResource(R.string.opt_75), color = textColor)
 
                     Button(
                         onClick = { currentPage = "list" },
                         modifier = Modifier.width(130.dp)
                     ) {
-                        Text("Ver Lista")
+                        Text(stringResource(R.string.see_list))
                     }
                 }
 
@@ -180,13 +183,13 @@ fun AlcoolOrGas(
                         val gas = formatNumber(gasPrice) ?: 0.0
 
                         if (alcool == 0.0 || gas == 0.0 || station.isBlank()) {
-                            result = "Preencha nome e preços!"
+                            result = context.getString(R.string.error_fill_all)
                             return@Button
                         }
 
                         val total = repo.getStations().size
                         if (editingId == null && total >= maxStations) {
-                            result = "Limite de postos atingido!"
+                            result = context.getString(R.string.error_limit_reached)
                             return@Button
                         }
 
@@ -214,11 +217,16 @@ fun AlcoolOrGas(
                         alcoolPrice = ""
                         gasPrice = ""
                         station = ""
-                        result = "Posto salvo!"
+                        result = context.getString(R.string.saved_station)
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(if (editingId == null) "Salvar Posto" else "Atualizar Posto")
+                    Text(
+                        if (editingId == null)
+                            stringResource(R.string.btn_save)
+                        else
+                            stringResource(R.string.btn_update)
+                    )
                 }
 
                 if (result.isNotEmpty()) {

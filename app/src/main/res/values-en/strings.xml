@@ -1,0 +1,47 @@
+<resources>
+    <string name="app_name">Alcohol or Gasoline</string>
+
+    <string name="dark_mode">Dark Mode</string>
+    <string name="title_new_station">Alcohol or Gasoline?</string>
+    <string name="title_edit_station">Edit Station</string>
+
+    <string name="label_alcool">Alcohol Price ($)</string>
+    <string name="placeholder_price">Ex: 5.49</string>
+
+    <string name="label_gas">Gas Price ($)</string>
+
+    <string name="label_station_name">Station Name</string>
+    <string name="placeholder_station">Ex: Central Gas Station</string>
+
+    <string name="opt_70">70%</string>
+    <string name="opt_75">75%</string>
+    <string name="see_list">See List</string>
+
+    <string name="error_fill_all">Fill all fields!</string>
+    <string name="error_limit_reached">Station limit reached!</string>
+    <string name="saved_station">Station saved!</string>
+
+    <string name="btn_save">Save Station</string>
+    <string name="btn_update">Update Station</string>
+
+
+    <string name="back">Back</string>
+    <string name="infinite">∞</string>
+    <string name="current_limit">Current limit</string>
+    <string name="clear_all">Clear All</string>
+
+    <string name="alcohol">Alcohol</string>
+    <string name="gasoline">Gasoline</string>
+    <string name="percent">Percent</string>
+
+    <string name="choose_action">What do you want to do?</string>
+    <string name="select_action_desc">Choose an action for this station.</string>
+
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="clear_all_question">Clear all?</string>
+    <string name="clear_all_warning">This will remove all saved stations.</string>
+    <string name="confirm">Confirm</string>
+</resources>

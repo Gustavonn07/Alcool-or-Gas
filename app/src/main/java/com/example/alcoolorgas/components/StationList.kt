@@ -13,9 +13,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.alcoolorgas.R
 import com.example.alcoolorgas.data.FuelHelpers
 import com.example.alcoolorgas.models.FuelStation
 
@@ -47,7 +49,7 @@ fun StationListPage(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Voltar",
+                stringResource(R.string.back),
                 fontSize = 18.sp,
                 color = Color.Blue,
                 modifier = Modifier.clickable { onBack() }
@@ -64,7 +66,7 @@ fun StationListPage(
                     Text("20")
                 }
                 Button(onClick = { onLimitChange(Int.MAX_VALUE) }) {
-                    Text("Inf")
+                    Text(stringResource(R.string.infinite))
                 }
             }
         }
@@ -75,12 +77,14 @@ fun StationListPage(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "Limite atual: ${if (limit == Int.MAX_VALUE) "∞" else limit}",
+                "${stringResource(R.string.current_limit)}: ${
+                    if (limit == Int.MAX_VALUE) "∞" else limit
+                }",
                 fontSize = 16.sp
             )
 
             Button(onClick = { showClearAll = true }) {
-                Text("Limpar Tudo")
+                Text(stringResource(R.string.clear_all))
             }
         }
 
@@ -101,9 +105,9 @@ fun StationListPage(
                         }
                 ) {
                     Text(st.name, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Text("Álcool: ${st.alcool}")
-                    Text("Gasolina: ${st.gasolina}")
-                    Text("Percentual: ${st.percent}%")
+                    Text("${stringResource(R.string.alcohol)}: ${st.alcool}")
+                    Text("${stringResource(R.string.gasoline)}: ${st.gasolina}")
+                    Text("${stringResource(R.string.percent)}: ${st.percent}%")
                 }
             }
         }
@@ -111,14 +115,14 @@ fun StationListPage(
         if (selectedStation != null) {
             AlertDialog(
                 onDismissRequest = { selectedStation = null },
-                title = { Text("O que deseja fazer?") },
-                text = { Text("Selecione uma ação para este posto.") },
+                title = { Text(stringResource(R.string.choose_action)) },
+                text = { Text(stringResource(R.string.select_action_desc)) },
                 confirmButton = {
                     TextButton(onClick = {
                         onSelect(selectedStation!!)
                         selectedStation = null
                     }) {
-                        Text("Editar")
+                        Text(stringResource(R.string.edit))
                     }
                 },
                 dismissButton = {
@@ -129,11 +133,11 @@ fun StationListPage(
                             onDelete(selectedStation!!)
                             selectedStation = null
                         }) {
-                            Text("Excluir", color = Color.Red)
+                            Text(stringResource(R.string.delete), color = Color.Red)
                         }
 
                         TextButton(onClick = { selectedStation = null }) {
-                            Text("Cancelar")
+                            Text(stringResource(R.string.cancel))
                         }
                     }
                 }
@@ -143,20 +147,20 @@ fun StationListPage(
         if (showClearAll) {
             AlertDialog(
                 onDismissRequest = { showClearAll = false },
-                title = { Text("Limpar tudo?") },
-                text = { Text("Isso removerá todos os postos salvos.") },
+                title = { Text(stringResource(R.string.clear_all_question)) },
+                text = { Text(stringResource(R.string.clear_all_warning)) },
                 confirmButton = {
                     TextButton(onClick = {
                         repo.clearAll()
                         stations.value = repo.getStations()
                         showClearAll = false
                     }) {
-                        Text("Confirmar", color = Color.Red)
+                        Text(stringResource(R.string.confirm), color = Color.Red)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showClearAll = false }) {
-                        Text("Cancelar")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )

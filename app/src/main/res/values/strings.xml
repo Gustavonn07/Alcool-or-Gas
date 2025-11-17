@@ -1,3 +1,46 @@
 <resources>
-    <string name="app_name">AlcoolOrGas</string>
+    <string name="app_name">Álcool ou Gasolina</string>
+
+    <string name="dark_mode">Modo Escuro</string>
+    <string name="title_new_station">Álcool ou Gasolina?</string>
+    <string name="title_edit_station">Editar Posto</string>
+
+    <string name="label_alcool">Preço do Álcool (R$)</string>
+    <string name="placeholder_price">Ex: 5.49</string>
+
+    <string name="label_gas">Preço da Gasolina (R$)</string>
+
+    <string name="label_station_name">Nome do Posto</string>
+    <string name="placeholder_station">Ex: Posto do Pici</string>
+
+    <string name="opt_70">70%</string>
+    <string name="opt_75">75%</string>
+    <string name="see_list">Ver Lista</string>
+
+    <string name="error_fill_all">Preencha nome e preços!</string>
+    <string name="error_limit_reached">Limite de postos atingido!</string>
+    <string name="saved_station">Posto salvo!</string>
+
+    <string name="btn_save">Salvar Posto</string>
+    <string name="btn_update">Atualizar Posto</string>
+
+    <string name="back">Voltar</string>
+    <string name="infinite">Inf</string>
+    <string name="current_limit">Limite atual</string>
+    <string name="clear_all">Limpar Tudo</string>
+
+    <string name="alcohol">Álcool</string>
+    <string name="gasoline">Gasolina</string>
+    <string name="percent">Percentual</string>
+
+    <string name="choose_action">O que deseja fazer?</string>
+    <string name="select_action_desc">Selecione uma ação para este posto.</string>
+
+    <string name="edit">Editar</string>
+    <string name="delete">Excluir</string>
+    <string name="cancel">Cancelar</string>
+
+    <string name="clear_all_question">Limpar tudo?</string>
+    <string name="clear_all_warning">Isso removerá todos os postos salvos.</string>
+    <string name="confirm">Confirmar</string>
 </resources>
