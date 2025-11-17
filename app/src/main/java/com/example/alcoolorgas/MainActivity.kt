@@ -5,33 +5,22 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.alcoolorgas.components.MoneyField
+import com.example.alcoolorgas.components.StationListPage
+import com.example.alcoolorgas.data.FuelHelpers
+import com.example.alcoolorgas.models.FuelStation
 import com.example.alcoolorgas.ui.theme.AlcoolOrGasTheme
 import com.example.alcoolorgas.ui.theme.Purple40
 
@@ -39,13 +28,27 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val prefs = getSharedPreferences("alcool_gas_prefs", MODE_PRIVATE)
+        val savedPercentSwitch = prefs.getBoolean("percentSwitch", true)
+        val savedDarkTheme = prefs.getBoolean("darkTheme", false)
+
         setContent {
-            var isDarkTheme by remember { mutableStateOf(false) }
+            var isDarkTheme by remember { mutableStateOf(savedDarkTheme) }
+            var percentChecked by remember { mutableStateOf(savedPercentSwitch) }
 
             AlcoolOrGasTheme(darkTheme = isDarkTheme) {
                 AlcoolOrGas(
                     isDarkTheme = isDarkTheme,
-                    onThemeChange = { isDarkTheme = it }
+                    onThemeChange = {
+                        isDarkTheme = it
+                        prefs.edit().putBoolean("darkTheme", it).apply()
+                    },
+                    switchChecked = percentChecked,
+                    onSwitchChange = {
+                        percentChecked = it
+                        prefs.edit().putBoolean("percentSwitch", it).apply()
+                    }
                 )
             }
         }
@@ -55,141 +58,189 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AlcoolOrGas(
     isDarkTheme: Boolean,
-    onThemeChange: (Boolean) -> Unit
+    onThemeChange: (Boolean) -> Unit,
+    switchChecked: Boolean,
+    onSwitchChange: (Boolean) -> Unit
 ) {
-    fun formatNumber(value: String): Double? {
-        // Remove tudo que não for número, vírgula ou ponto
-        val cleaned = value.replace(Regex("[^0-9,.]"), "")
-            .replace(',', '.')
-        return cleaned.toDoubleOrNull()
-    }
+    val context = LocalContext.current
+    val repo = remember { FuelHelpers(context) }
+
+    var currentPage by remember { mutableStateOf("home") }
 
     var alcoolPrice by remember { mutableStateOf("") }
     var gasPrice by remember { mutableStateOf("") }
     var station by remember { mutableStateOf("") }
-    var checked by remember { mutableStateOf(true) }
     var result by remember { mutableStateOf("") }
+    var editingId by remember { mutableStateOf<String?>(null) }
+    var maxStations by remember { mutableStateOf(Int.MAX_VALUE) }
+
+    fun formatNumber(value: String): Double? {
+        val cleaned = value.replace(Regex("[^0-9,.]"), "").replace(',', '.')
+        return cleaned.toDoubleOrNull()
+    }
 
     val backgroundColor = if (isDarkTheme) Color.DarkGray else Color.White
     val textColor = if (isDarkTheme) Color.White else Purple40
-    val percent = if (checked) 0.75 else 0.70
+    val percentValue = if (switchChecked) 75 else 70
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-            .background(backgroundColor),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
+    when (currentPage) {
+
+        "home" -> Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(42.dp)
+                .fillMaxSize()
+                .background(backgroundColor)
         ) {
-            Text("Modo Escuro", color = textColor)
-            Spacer(modifier = Modifier.width(8.dp))
-            Switch(
-                checked = isDarkTheme,
-                onCheckedChange = { onThemeChange(it) }
-            )
-        }
-        Column(
-            modifier = Modifier
-                .padding(24.dp)
-                .fillMaxWidth()
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-
-            Text(
-                text = "Álcool ou Gasolina?",
-                color = textColor,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-            )
-
-            Spacer(modifier = Modifier.height(64.dp))
-
-            MoneyField(
-                value = alcoolPrice,
-                setValue = { newValue -> alcoolPrice = newValue },
-                label = "Preço do Álcool (R$)",
-                placeholder = "Ex: 5.49"
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            MoneyField(
-                value = gasPrice,
-                setValue = { newValue -> gasPrice = newValue },
-                label = "Preço da Gasolina (R$)",
-                placeholder = "Ex: 5.49"
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            TextField(
-                onValueChange = { newStation -> station = newStation },
-                value = station,
-                label = { Text("Nome do Posto (Opcional)", color = textColor) },
-                placeholder = { Text("Ex: Posto do Pici", color = textColor.copy(alpha = 0.5f)) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
             Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
                 modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
+                    .fillMaxWidth()
+                    .padding(42.dp)
             ) {
-                Text("70%", color = textColor)
-                Spacer(modifier = Modifier.width(12.dp))
+                Text("Modo Escuro", color = textColor)
+                Spacer(modifier = Modifier.width(8.dp))
                 Switch(
-                    checked = checked,
-                    onCheckedChange = { checked = it },
+                    checked = isDarkTheme,
+                    onCheckedChange = { onThemeChange(it) }
                 )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text("75%", color = textColor)
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Button(
-                onClick = {
-                    val alcool = formatNumber(alcoolPrice) ?: 0.0
-                    val gas = formatNumber(gasPrice) ?: 0.0
-                    result = if (alcool == 0.0 || gas == 0.0) {
-                        "Preencha os preços corretamente!"
-                    } else if (alcool / gas <= percent) {
-                        "Abasteça com Álcool"
-                    } else {
-                        "Abasteça com Gasolina"
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Calcular")
-            }
 
-            if (result.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(20.dp))
-                val color = when {
-                    result.contains("Álcool") -> Color(0xFF009688)
-                    result.contains("Gasolina") -> Color(0xFF3F51B5)
-                    else -> Color.Gray
-                }
                 Text(
-                    text = result,
-                    color = color,
-                    fontWeight = FontWeight.SemiBold
+                    text = if (editingId == null) "Álcool ou Gasolina?" else "Editar Posto",
+                    color = textColor,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
                 )
+
+                Spacer(modifier = Modifier.height(64.dp))
+
+                MoneyField(
+                    value = alcoolPrice,
+                    setValue = { alcoolPrice = it },
+                    label = "Preço do Álcool (R$)",
+                    placeholder = "Ex: 5.49"
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                MoneyField(
+                    value = gasPrice,
+                    setValue = { gasPrice = it },
+                    label = "Preço da Gasolina (R$)",
+                    placeholder = "Ex: 5.49"
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                TextField(
+                    onValueChange = { station = it },
+                    value = station,
+                    label = { Text("Nome do Posto", color = textColor) },
+                    placeholder = { Text("Ex: Posto do Pici", color = textColor.copy(alpha = 0.5f)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("70%", color = textColor)
+                    Switch(
+                        checked = switchChecked,
+                        onCheckedChange = { onSwitchChange(it) }
+                    )
+                    Text("75%", color = textColor)
+
+                    Button(
+                        onClick = { currentPage = "list" },
+                        modifier = Modifier.width(130.dp)
+                    ) {
+                        Text("Ver Lista")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Button(
+                    onClick = {
+                        val alcool = formatNumber(alcoolPrice) ?: 0.0
+                        val gas = formatNumber(gasPrice) ?: 0.0
+
+                        if (alcool == 0.0 || gas == 0.0 || station.isBlank()) {
+                            result = "Preencha nome e preços!"
+                            return@Button
+                        }
+
+                        val total = repo.getStations().size
+                        if (editingId == null && total >= maxStations) {
+                            result = "Limite de postos atingido!"
+                            return@Button
+                        }
+
+                        if (editingId == null) {
+                            val newStation = FuelStation(
+                                id = java.util.UUID.randomUUID().toString(),
+                                name = station,
+                                alcool = alcool,
+                                gasolina = gas,
+                                percent = percentValue
+                            )
+                            repo.addStation(newStation)
+                        } else {
+                            val updated = FuelStation(
+                                id = editingId!!,
+                                name = station,
+                                alcool = alcool,
+                                gasolina = gas,
+                                percent = percentValue
+                            )
+                            repo.updateStation(updated)
+                            editingId = null
+                        }
+
+                        alcoolPrice = ""
+                        gasPrice = ""
+                        station = ""
+                        result = "Posto salvo!"
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(if (editingId == null) "Salvar Posto" else "Atualizar Posto")
+                }
+
+                if (result.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Text(text = result, color = Color.Gray, fontWeight = FontWeight.SemiBold)
+                }
             }
         }
+
+        "list" -> StationListPage(
+            repo = repo,
+            onBack = { currentPage = "home" },
+            onSelect = { st ->
+                alcoolPrice = st.alcool.toString()
+                gasPrice = st.gasolina.toString()
+                onSwitchChange(st.percent == 75)
+                station = st.name
+                editingId = st.id
+                currentPage = "home"
+            },
+            limit = maxStations,
+            onLimitChange = { maxStations = it }
+        )
     }
 }
