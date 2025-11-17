@@ -1,130 +1,125 @@
-# Álcool ou Gasolina?
+Alcool ou Gasolina
 
-Aplicativo Android desenvolvido em **Jetpack Compose** para ajudar o usuário a decidir qual combustível vale mais a pena abastecer com base no preço do álcool e da gasolina. O app também permite salvar postos, editar, excluir, limitar a quantidade salva e alternar entre tema claro/escuro.
+Este é um aplicativo Android desenvolvido em Kotlin cujo objetivo é
+registrar preços de combustível (álcool e gasolina), salvar a
+localização do posto e exibir essa localização no mapa. O usuário pode
+cadastrar postos, visualizar uma lista dos registros e abrir o mapa
+nativo mostrando onde o posto está localizado.
 
----
+------------------------------------------------------------------------
 
-## 🚀 Funcionalidades
+## Funcionalidades
 
-### 🔢 Cálculo automático
+### Cadastro de Preços
 
-O app calcula automaticamente se vale mais a pena abastecer com **álcool** ou **gasolina**, usando a regra dos **70% ou 75%**, definida pelo usuário.
+-   O usuário informa:
+    -   Nome do posto
+    -   Preço do álcool
+    -   Preço da gasolina
+-   O aplicativo calcula automaticamente a porcentagem (`percent`)
+    referente à relação álcool/gasolina.
 
-### 💾 Cadastro de Postos
+### Coleta de Localização
 
-* Salvar postos com nome, preço do álcool, preço da gasolina e percentual usado.
-* Editar postos existentes.
-* Excluir postos individualmente.
-* Limpar todos os postos.
-* Limitar quantidade máxima (5, 10, 20 ou ilimitado).
+-   O aplicativo solicita permissão de acesso à localização
+    (`ACCESS_FINE_LOCATION`).
+-   Ao registrar um posto, a latitude e longitude atuais são capturadas
+    e salvas junto aos dados.
+-   Não utiliza *bibliotecas externas* para GPS: usa apenas a API nativa
+    do Android (`FusedLocationProviderClient` ou `LocationManager`,
+    conforme implementação vista em aula).
 
-### 🎨 Tema claro/escuro
+### Visualização de Mapa
 
-O usuário pode alternar entre modo claro e modo escuro, utilizando **State + SharedPreferences** para persistência.
+-   Na lista de postos cadastrados, ao clicar em um item:
+    -   É exibida uma opção para visualizar o local no mapa.
 
-### 📋 Listagem de Postos
+    -   A abertura do mapa é feita usando `Intent` com URI no formato:
 
-* Lista completa dos postos cadastrados.
-* Exibição dos valores cadastrados.
-* Popup para editar/excluir.
-* Botões de configuração do limite.
+            geo:LAT,LNG?q=LAT,LNG(Posto)
 
----
+    -   O Google Maps (ou outro app compatível) abre automaticamente.
 
-## 🛠️ Tecnologias Utilizadas
+### Estrutura de Dados
 
-* **Kotlin**
-* **Jetpack Compose**
-* **Material 3**
-* **SharedPreferences** para persistência de tema e switch de percentual
-* **Armazenamento local** (listagem via Helpers customizados)
+O modelo principal usado no app:
 
----
-
-## 📂 Estrutura do Projeto
-
-```
-com.example.alcoolorgas
-│
-├── MainActivity.kt
-│   - Tela principal
-│   - Controle de tema
-│   - Controle do switch 70% / 75%
-│   - Fluxo de criação e edição de postos
-│
-├── components/
-│   ├── MoneyField.kt
-│   └── StationListPage.kt
-│       - Lista de postos
-│       - Limite de registros
-│       - Limpar tudo
-│
-├── helpers/
-│   └── FuelHelpers.kt
-│       - Manipulação de salvar/editar/excluir postos
-│
-├── models/
-│   └── FuelStation.kt
-│       - Modelo de dados
-│
-└── ui/theme/
-    - Configurações de tema (Material3)
+``` kotlin
+data class FuelStation(
+    val id: String,
+    val name: String,
+    val alcool: Double,
+    val gasolina: Double,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val date: Long = System.currentTimeMillis(),
+    val percent: Int
+)
 ```
 
----
+### Persistência
 
-## 📱 Fluxo do Usuário
+-   Os dados podem ser salvos via SharedPreferences ou banco local
+    (dependendo da implementação da aula).
+-   Cada registro inclui:
+    -   Preços
+    -   Nome
+    -   Coordenadas
+    -   Data de criação
+    -   Porcentagem calculada do custo-benefício do álcool
 
-1. Usuário informa valor do álcool, gasolina e nome do posto.
-2. Escolhe entre 70% ou 75%.
-3. Clica em **Calcular** para ver o resultado.
-4. Pode salvar o posto.
-5. Na lista:
+------------------------------------------------------------------------
 
-    * Pode editar um posto.
-    * Pode excluir.
-    * Pode ajustar limite de armazenamento.
-    * Pode limpar tudo.
+## Tecnologias Utilizadas
 
----
+-   **Kotlin**
+-   **Android SDK**
+-   **Intents e Geo URIs**
+-   **Permissões com AndroidX**
+-   **Localização sem bibliotecas externas**
 
-## ⚙️ Lógica do Cálculo
+------------------------------------------------------------------------
 
-```kotlin
-if (alcool / gas <= percentValue / 100.0) {
-    "Abasteça com Álcool"
-} else {
-    "Abasteça com Gasolina"
-}
+## Como Rodar o Projeto
+
+1.  Clone o repositório:
+
+    ``` bash
+    git clone https://github.com/SEU-USUARIO/alcool-ou-gasolina.git
+    ```
+
+2.  Abra no Android Studio.
+
+3.  Execute no emulador ou dispositivo físico.
+
+4.  Permita a coleta de localização quando solicitado.
+
+------------------------------------------------------------------------
+
+## Permissões Necessárias
+
+``` xml
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 ```
 
----
+------------------------------------------------------------------------
 
-## 🧪 Tratamento de Edição
+## Funcionalidade de Mapa com Intent
 
-Ao selecionar um posto na lista, o app retorna para a tela principal com os campos preenchidos automaticamente.
+Exemplo do Intent usado:
 
----
+``` kotlin
+val uri = Uri.parse("geo:${station.latitude},${station.longitude}?q=${station.latitude},${station.longitude}(${station.name})")
+val intent = Intent(Intent.ACTION_VIEW, uri)
+intent.setPackage("com.google.android.apps.maps")
+startActivity(intent)
+```
 
-## 📌 Persistência
+------------------------------------------------------------------------
 
-O app salva automaticamente:
+## 
 
-* Tema claro/escuro
-* Valor do switch 70/75
+## Licença
 
-Postos são salvos via Storage interno do app.
-
----
-
-## 📦 Como Rodar
-
-1. Abra o projeto no Android Studio.
-2. Sincronize as dependências.
-3. Rode em um dispositivo físico ou emulador.
-
----
-
-## 📝 Licença
-
-Projeto feito para fins educacionais.
+Projeto desenvolvido para fins educacionais (Aulas de Desenvolvimento
+Android -- 2025).
